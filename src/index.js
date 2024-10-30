@@ -12,6 +12,8 @@ import reportWebVitals from './reportWebVitals';
 import Requirement_Dialog from './Requirement_Dialog'
 import Recommendation from './Recommendation'
 import Home from './Home'
+import Ranking from './Ranking'
+import Navbar from './Navbar'
 import { Table } from 'lucide-react';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -20,7 +22,10 @@ root.render(
       {/* <WelcomePage /> */}
       {/* {<Requirement_Dialog/>} */}
       {/* {<Recommendation/>} */}
-      {<Home></Home>}
+      {/* {<Home></Home>} */}
+      {<Ranking></Ranking>}
+      {/* {<Navbar></Navbar>} */}
+
       </I18nextProvider>
   </React.StrictMode>
 );
