@@ -2,9 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, Code, BookOpen, Brain, Send, Sparkles, Globe } from 'lucide-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+
 
 const WelcomePage = () => {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate(); // 使用 useNavigate 钩子
   const [customRequirement, setCustomRequirement] = useState('');
   const [activeScenario, setActiveScenario] = useState(null);
   const [isCustomInput, setIsCustomInput] = useState(false);
@@ -108,14 +111,30 @@ const WelcomePage = () => {
 
     // 模拟系统回复
     setTimeout(() => {
+      const userMessage = customRequirement;
+      let systemReply = '';
+
+      if (userMessage.includes('I want a gpt that can help me plan a space-themed birthday party')) {
+        systemReply = 'It looks like you need assistance in planning a space-themed birthday party. Could you share more details like the age group of the attendees or any specific ideas you have in mind? ';
+      }
+      if (userMessage.includes('我想要一个代码补全的gpt')) {
+        systemReply = '你是想要一个可以帮助你完成代码的AI助手吗？如果是的话，你可以告诉我编程语言和任务，我会尽力提供支持。';
+      } else if (userMessage.includes('python for ml')) {
+        systemReply = '你对机器学习的需求是什么呢？你更希望代码执行速度快一些，还是希望模型的准确性更高一些？';
+        navigate('/recommendation'); 
+      } else if(userMessage.includes('我想要更高的准确率')) {
+        systemReply = '好的，我已经为你找到满足你要求的模型。';
+
+      }
+
+      
+      
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now(),
           type: 'system',
-          content: t(
-            '根据您的描述，我们推荐：\n1. [具体推荐模型] - [推荐理由]\n2. [替代方案] - [方案优势]\n3. [其他选择] - [特点说明]'
-          ),
+          content: systemReply,
         },
       ]);
       setIsLoading(false);

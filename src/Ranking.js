@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Menu, Search, Star, TrendingUp, Award, ArrowUpRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { 
     ChevronRight, 
     Brain, 
@@ -45,6 +46,9 @@ const NavButton = ({ icon: Icon, label, isActive, onClick }) => {
         setActiveTab(path);
         // 在实际应用中这里可以使用 router 进行导航
         console.log('Navigating to:', path);
+        if(path == 'ai-recommend'){
+          window.location.href = '/welcome';
+      }
       };
     
       return (
