@@ -1,0 +1,23 @@
+# Node.js
+node_modules/
+
+# Log files
+*.log
+
+# Uploads and temporary files
+uploads/
+
+# Environment and configuration files
+.env
+prisma/.env
+
+# TypeScript build files
+dist/
+*.tsbuildinfo
+
+# macOS
+.DS_Store
+
+# IDE and editor
+.vscode/
+.idea/
