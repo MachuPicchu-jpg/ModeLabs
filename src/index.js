@@ -17,6 +17,7 @@ import Home from './Home'
 import Ranking from './Ranking'
 import Navbar from './Navbar'
 import { Table } from 'lucide-react';
+import ModelTest from './components/ModelTest';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 root.render(
@@ -31,6 +32,7 @@ root.render(
           <Route path="/home" element={<WelcomePage />} />
           <Route path="/ranking" element={<Ranking />} />
           <Route path="/navbar" element={<Navbar />} />
+          <Route path="/api" element={<ModelTest />} />
           
           {/* 未来的路由 */}
           {/* <Route path="/profile" element={<Profile />} /> */}
