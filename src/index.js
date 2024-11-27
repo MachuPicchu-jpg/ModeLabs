@@ -13,17 +13,22 @@ import WelcomePage from './WelcomePage';
 import reportWebVitals from './reportWebVitals';
 import Requirement_Dialog from './Requirement_Dialog'
 import Recommendation from './Recommendation'
-import Home from './Home'
+import Home from './pages/Home'
 import Ranking from './Ranking'
-import Navbar from './Navbar'
+import Navbar from './components/Navbar'
 import { Table } from 'lucide-react';
 import ModelTest from './components/ModelTest';
+import { AuthProvider } from './contexts/AuthContext';
+import Login from './pages/Login';
+import Profile from './pages/Profile';
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 root.render(
   <React.StrictMode>
     <BrowserRouter>
       <I18nextProvider i18n={i18n}>
+      <AuthProvider>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/welcome" element={<WelcomePage />} />
@@ -33,12 +38,14 @@ root.render(
           <Route path="/ranking" element={<Ranking />} />
           <Route path="/navbar" element={<Navbar />} />
           <Route path="/api" element={<ModelTest />} />
-          
+          <Route path="/login" element={<Login />} /> 
+          <Route path="/profile" element={<Profile />} />
           {/* 未来的路由 */}
           {/* <Route path="/profile" element={<Profile />} /> */}
           {/* <Route path="/settings" element={<Settings />} /> */}
           {/* <Route path="/about" element={<About />} /> */}
         </Routes>
+        </AuthProvider>
       </I18nextProvider>
     </BrowserRouter>
   </React.StrictMode>

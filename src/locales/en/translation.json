@@ -17,6 +17,21 @@
     "学习辅导": "Learning Assistance",
     "课程辅导、知识解答、论文写作的AI工具": "AI tools for course tutoring, knowledge answering, and paper writing",
     "专业研究": "Professional Research",
-    "科研分析、专业领域问题的解决方案": "Solutions for scientific research and professional field problems"
+    "科研分析、专业领域问题的解决方案": "Solutions for scientific research and professional field problems",
+    "login": {
+      "title": "Login",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Login",
+      "forgotPassword": "Forgot password?",
+      "noAccount": "No account?",
+      "signUp": "Sign up",
+      "emailRequired": "Please enter your email",
+      "passwordRequired": "Please enter your password",
+      "invalidEmail": "Please enter a valid email address",
+      "continueWithGoogle": "Continue with Google",
+      "orContinueWith": "Or continue with",
+      "signingIn": "Signing in...",
+      "googleError": "Could not sign in with Google"
+    }
   }
-  

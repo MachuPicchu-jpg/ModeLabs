@@ -17,6 +17,22 @@
     "学习辅导": "学习辅导",
     "课程辅导、知识解答、论文写作的AI工具": "课程辅导、知识解答、论文写作的AI工具",
     "专业研究": "专业研究",
-    "科研分析、专业领域问题的解决方案": "科研分析、专业领域问题的解决方案"
+    "科研分析、专业领域问题的解决方案": "科研分析、专业领域问题的解决方案",
+    "login": {
+      "title": "登录",
+      "email": "邮箱",
+      "password": "密码",
+      "submit": "登录",
+      "forgotPassword": "忘记密码？",
+      "noAccount": "还没有账号？",
+      "signUp": "注册",
+      "emailRequired": "请输入邮箱",
+      "passwordRequired": "请输入密码",
+      "invalidEmail": "请输入有效的邮箱地址",
+      "continueWithGoogle": "使用 Google 帐号登录",
+      "orContinueWith": "或者",
+      "signingIn": "登录中...",
+      "googleError": "无法使用 Google 登录"
+    }
   }
   

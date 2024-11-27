@@ -1,23 +1,18 @@
 import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { auth } from '../config/firebase';
+import { signOut } from 'firebase/auth';
 import { 
-    ChevronRight, 
-    Brain, 
-    Database, 
-    TestTube, 
-    UserCircle2, 
-    Sparkles,
-    Mail, 
-    Github, 
-    Twitter, 
-    Linkedin, 
-    Youtube, 
-    Instagram, 
-    Globe,
-    Heart,
-    MessagesSquare as Discord,
-    Menu
-  } from 'lucide-react';
-  
+  ChevronRight, 
+  Brain, 
+  Database, 
+  TestTube, 
+  UserCircle2, 
+  Sparkles,
+  Menu
+} from 'lucide-react';
+
 const NavButton = ({ icon: Icon, label, isActive, onClick }) => {
   return (
     <button 
@@ -38,6 +33,8 @@ const NavButton = ({ icon: Icon, label, isActive, onClick }) => {
 };
 
 const Navbar = () => {
+    const { user } = useAuth();
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('home');
     const [menuOpen, setMenuOpen] = useState(false);
   
@@ -46,6 +43,60 @@ const Navbar = () => {
       // 在实际应用中这里可以使用 router 进行导航
       console.log('Navigating to:', path);
     };
+  
+    const handleLogout = async () => {
+      try {
+        await signOut(auth);
+        navigate('/');
+      } catch (error) {
+        console.error('Error signing out:', error);
+      }
+    };
+  
+    const signInButton = user ? (
+      <div className="relative group">
+        <div 
+          onClick={() => navigate('/profile')} 
+          className="flex items-center space-x-3 px-6 py-3 text-gray-700 cursor-pointer hover:bg-gray-100 rounded-full"
+        >
+          {user.photoURL ? (
+            <img 
+              src={user.photoURL} 
+              alt="Profile" 
+              className="w-8 h-8 rounded-full"
+            />
+          ) : (
+            <UserCircle2 className="w-6 h-6" />
+          )}
+          <span>{user.email}</span>
+        </div>
+        
+        {/* Dropdown Menu */}
+        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden group-hover:block">
+          <button
+            onClick={() => navigate('/profile')}
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+          >
+            Profile
+          </button>
+          <button
+            onClick={handleLogout}
+            className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 w-full text-left"
+          >
+            Log Out
+          </button>
+        </div>
+      </div>
+    ) : (
+      <Link
+        to="/login"
+        className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-500 text-white rounded-full flex items-center space-x-3
+                  hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-600 transition-all duration-300 ease-in-out transform hover:scale-110"
+      >
+        <UserCircle2 className="w-6 h-6" />
+        <span>Sign In</span>
+      </Link>
+    );
   
     return (
       <nav className="w-full py-4 px-8 flex items-center justify-between backdrop-blur-lg bg-white/40 fixed top-0 z-50 border-b border-gray-300">
@@ -84,14 +135,7 @@ const Navbar = () => {
             isActive={activeTab === 'test'}
             onClick={() => handleNavigation('test')}
           />
-          <button
-            onClick={() => handleNavigation('signin')} 
-            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-500 text-white rounded-full flex items-center space-x-3
-                       hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-600 transition-all duration-300 ease-in-out transform hover:scale-110"
-          >
-            <UserCircle2 className="w-6 h-6" />
-            <span>Sign In</span>
-          </button>
+          {signInButton}
         </div>
         <div className="lg:hidden flex items-center">
           <button onClick={() => setMenuOpen(!menuOpen)}>
@@ -124,14 +168,7 @@ const Navbar = () => {
               isActive={activeTab === 'test'}
               onClick={() => handleNavigation('test')}
             />
-            <button
-              onClick={() => handleNavigation('signin')} 
-              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-500 text-white rounded-full flex items-center space-x-3
-                        hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-600 transition-all duration-300 ease-in-out transform hover:scale-110"
-            >
-              <UserCircle2 className="w-6 h-6" />
-              <span>Sign In</span>
-            </button>
+            {signInButton}
           </div>
         )}
       </nav>
