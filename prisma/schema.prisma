@@ -51,3 +51,32 @@ model EvaluationResult {
 
   @@map("evaluation_results")
 }
+
+model User {
+  id          Int      @id @default(autoincrement())
+  username    String   @unique
+  email       String   @unique
+  passwordHash String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model LanguageModelRank {
+  id            Int      @id @default(autoincrement())  // 唯一标识
+  model_name    String   // 模型名称
+  overall_score Float    // 综合评分
+  aspect_scores Json     // 各方面的评分（JSON 格式）
+  updated_at    DateTime @updatedAt // 更新时间
+
+  @@map("language_models_rank") // 数据库表名称
+}
+
+model MultimodalModelRank {
+  id            Int      @id @default(autoincrement())  // 唯一标识
+  model_name    String   // 模型名称
+  overall_score Float    // 综合评分
+  aspect_scores Json     // 各方面的评分（JSON 格式）
+  updated_at    DateTime @updatedAt // 更新时间
+
+  @@map("multimodal_models_rank") // 数据库表名称
+}
