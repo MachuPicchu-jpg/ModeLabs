@@ -1,25 +1,16 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-// Remove analytics if you're not using it
-// import { getAnalytics } from "firebase/analytics";
 
-// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyBpXUq1P1pZJaPh4t_eDL3v2BuQagCJ2oM",
-  authDomain: "modelabs-a04f7.firebaseapp.com",
-  projectId: "modelabs-a04f7",
-  storageBucket: "modelabs-a04f7.firebasestorage.app",
-  messagingSenderId: "418192407049",
-  appId: "1:418192407049:web:904f30e1ca6ca9d0e5d6d8",
-  measurementId: "G-RCT286G22Q"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-// Remove analytics if you're not using it
-// const analytics = getAnalytics(app);
-
-// Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
 export default app;
