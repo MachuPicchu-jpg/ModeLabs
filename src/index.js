@@ -16,11 +16,14 @@ import Recommendation from './Recommendation'
 import Home from './pages/Home'
 import Ranking from './Ranking'
 import Navbar from './components/Navbar'
-import { Table } from 'lucide-react';
+import { Table, TestTube } from 'lucide-react';
 import ModelTest from './components/ModelTest';
 import { AuthProvider } from './contexts/AuthContext';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
+// import Models from './pages/Models';
+// import Datasets from './pages/Datasets';
+// import Test from './pages/Test';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
@@ -40,8 +43,11 @@ root.render(
           <Route path="/api" element={<ModelTest />} />
           <Route path="/login" element={<Login />} /> 
           <Route path="/profile" element={<Profile />} />
+
           {/* 未来的路由 */}
-          {/* <Route path="/profile" element={<Profile />} /> */}
+          {/*<Route path="/models" element={<Models />} />} */}
+          {/*<Route path="/datasets" element={<Datasets />} /> */}
+          {/*<Route path="/test" element={<Test />} /> */}
           {/* <Route path="/settings" element={<Settings />} /> */}
           {/* <Route path="/about" element={<About />} /> */}
         </Routes>

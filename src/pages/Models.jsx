@@ -180,7 +180,7 @@ const ModelCard = ({ name, tag, updateTime, onEdit, onDelete }) => {
     );
 };
 
-export const ModelManagement = () => {
+export const Model = () => {
     return (
       <div className={styles.container}>
         <Header />

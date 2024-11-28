@@ -141,7 +141,7 @@ const TablePagination = () => {
     );
 };
 
-export const EvaluationPage = () => {
+export const Test = () => {
     const tableData = [
         {
             taskName: 'TEST 3',
