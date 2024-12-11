@@ -52,15 +52,6 @@ model EvaluationResult {
   @@map("evaluation_results")
 }
 
-model User {
-  id          Int      @id @default(autoincrement())
-  username    String   @unique
-  email       String   @unique
-  passwordHash String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
 model LanguageModelRank {
   id            Int      @id @default(autoincrement())  // 唯一标识
   model_name    String   // 模型名称
@@ -71,7 +62,7 @@ model LanguageModelRank {
   @@map("language_models_rank") // 数据库表名称
 }
 
-model MultimodalModelRank {
+model MultimodelModelRank {
   id            Int      @id @default(autoincrement())  // 唯一标识
   model_name    String   // 模型名称
   overall_score Float    // 综合评分
