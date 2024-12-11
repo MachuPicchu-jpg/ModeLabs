@@ -8,7 +8,7 @@ export interface EvaluationTask {
     updatedAt: Date;
   }
   
-  export interface EvaluationResult {
+export interface EvaluationResult {
     id: string;
     taskId: string;
     metrics: Record<string, number>;

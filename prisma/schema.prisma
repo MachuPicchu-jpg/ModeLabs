@@ -51,3 +51,34 @@ model EvaluationResult {
 
   @@map("evaluation_results")
 }
+
+model LanguageModelRanking {
+  id              String   @id @default(cuid())
+  model_id        String
+  model_name      String
+  overall_score   Float
+  inference       Float
+  mathematics     Float
+  coding          Float
+  knowledge_usage Float
+  organization    Float
+  created_at      DateTime @default(now())
+  updated_at      DateTime @default(now()) @updatedAt
+
+  @@map("language_model_rankings")
+}
+
+model MultimodalModelRanking {
+  id              String   @id @default(cuid())
+  model_id        String
+  model_name      String
+  overall_score   Float
+  visual_recognition Float
+  audio_processing  Float
+  text_understanding Float
+  integration      Float
+  created_at      DateTime @default(now())
+  updated_at      DateTime @default(now()) @updatedAt
+
+  @@map("multimodal_model_rankings")
+}

@@ -3,29 +3,31 @@ import cors from 'cors';
 import morgan from 'morgan';
 import helmet from 'helmet';
 import { config } from 'dotenv';
+import rankingRoutes from './routes/rankingRoutes';
 import routes from './routes';
 import { errorHandler } from './middlewares/errors';
 
 // Load environment variables
 config();
 
+
 const app = express();
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000', // Next.js 默认端口是3000
+  credentials: true
+}));
+
+app.use(express.json());
+app.use('/api', rankingRoutes); // 确保路由前缀与前端请求路径匹配
 
 // CORS配置
-app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000', // Next.js 默认端口是3000
-    credentials: true
-  }));
 
-// Middlewares
-app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
-app.use('/api', routes);
+
 
 // Error handling
 // 错误处理
