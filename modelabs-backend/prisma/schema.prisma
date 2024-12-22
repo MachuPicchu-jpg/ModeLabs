@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Model {
+  id          Int      @id @default(autoincrement())
+  name        String
+  type        String
+  description String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@map("models")
+}
+
+model Dataset {
+  id          String   @id @default(uuid())
+  name        String
+  type        String
+  path        String
+  size        Int
+  description String?
+  userId      String
+  userEmail   String
+  category    String
+  subCategory String
+  downloads   Int      @default(0)
+  visibility  String   @default("public")
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("datasets")
+}
+
+model EvaluationTask {
+  id         String   @id @default(cuid())
+  model_id   String
+  dataset_id String
+  status     String
+  config     Json?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("evaluation_tasks")
+}
+
+model EvaluationResult {
+  id         String   @id @default(cuid())
+  task_id    String   @unique
+  metrics    Json
+  details    Json?
+  created_at DateTime @default(now())
+
+  @@map("evaluation_results")
+}
+
+model LanguageModelRanking {
+  id              String   @id @default(cuid())
+  model_id        String   @unique
+  model_name      String
+  overall_score   Float
+  inference       Float
+  mathematics     Float
+  coding          Float
+  knowledge_usage Float
+  organization    Float
+  progress        Float    @default(0)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @default(now()) @updatedAt
+
+  @@map("language_model_rankings")
+}
+
+model MultimodalModelRanking {
+  id              String   @id @default(cuid())
+  model_id        String
+  model_name      String
+  overall_score   Float
+  visual_recognition Float
+  audio_processing  Float
+  text_understanding Float
+  integration      Float
+  created_at      DateTime @default(now())
+  updated_at      DateTime @default(now()) @updatedAt
+
+  @@map("multimodal_model_rankings")
+}

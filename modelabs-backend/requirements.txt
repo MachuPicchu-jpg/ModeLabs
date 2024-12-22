@@ -1,0 +1,7 @@
+openai>=1.0.0
+firebase-admin>=6.0.0
+tqdm>=4.65.0
+python-dotenv>=1.0.0
+datasets>=2.15.0
+torch>=2.1.0
+requests>=2.28.2 

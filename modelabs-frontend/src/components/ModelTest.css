@@ -1,0 +1,68 @@
+.model-test {
+    padding: 20px;
+  }
+  
+  .add-model-form {
+    max-width: 500px;
+    margin-bottom: 30px;
+  }
+  
+  .add-model-form form > div {
+    margin-bottom: 15px;
+  }
+  
+  .add-model-form label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  .add-model-form input,
+  .add-model-form select,
+  .add-model-form textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .add-model-form textarea {
+    height: 100px;
+  }
+  
+  button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background-color: #45a049;
+  }
+  
+  .error {
+    color: red;
+    margin: 10px 0;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  th {
+    background-color: #f4f4f4;
+  }
+  
+  tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
