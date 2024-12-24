@@ -29,11 +29,11 @@
     "@types/helmet": "^4.0.0",
     "@types/morgan": "^1.9.9",
     "@types/multer": "^1.4.12",
-    "@types/node": "^20.11.5",
+    "@types/node": "^20.17.10",
     "@types/uuid": "^9.0.7",
-    "prisma": "^5.8.1",
+    "prisma": "^5.22.0",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.7.2"
   }
 }
