@@ -19,6 +19,22 @@ const ALLOWED_EXTENSIONS = ['.json', '.jsonl', '.csv', '.xlsx', '.yaml', '.yml',
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 const API_BASE_URL = 'http://localhost:3001'; // 添加后端API基础URL
 
+// Helper function to get file extension
+const getFileExtension = (filename) => {
+  if (!filename) return '';
+  const lastDotIndex = filename.lastIndexOf('.');
+  return lastDotIndex > -1 ? filename.slice(lastDotIndex + 1).toUpperCase() : '';
+};
+
+// Format file size for display
+const formatFileSize = (bytes) => {
+  if (!bytes || isNaN(bytes)) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
+
 const CATEGORIES = {
   'Large Language Models': ['Language Understanding', 'Mathematics', 'Coding', 'Reasoning'],
   'Multimodal Models': ['Image Recognition', 'Audio Processing', 'Text Understanding', 'Integration']
@@ -72,16 +88,6 @@ const Dataset = () => {
     return matchesSearch && matchesMainCategory && matchesSubCategory;
   });
 
-
-  // Format file size for display
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -127,31 +133,57 @@ const Dataset = () => {
       formData.append('userEmail', user.email);
       formData.append('category', selectedCategory);
       formData.append('subCategory', selectedSubCategory);
+      formData.append('type', 'text');
+      formData.append('visibility', 'public');
+      formData.append('status', 'pending');
+      formData.append('size', selectedFile.size.toString());
+
+      console.log('Uploading to:', `${API_BASE_URL}/api/datasets/upload`);
+      console.log('Form data:', {
+        name: selectedFile.name,
+        size: selectedFile.size,
+        type: selectedFile.type,
+        category: selectedCategory,
+        subCategory: selectedSubCategory
+      });
 
       const response = await fetch(`${API_BASE_URL}/api/datasets/upload`, {
         method: 'POST',
         body: formData,
       });
 
+      // Log the raw response for debugging
+      const responseText = await response.text();
+      console.log('Raw response:', responseText);
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Upload failed');
+        try {
+          const errorData = JSON.parse(responseText);
+          throw new Error(errorData.error || 'Upload failed');
+        } catch (parseError) {
+          console.error('Response parsing error:', parseError);
+          throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
       }
 
-      const result = await response.json();
-      
-      setUploadStatus({
-        type: 'success',
-        message: 'Dataset uploaded successfully!'
-      });
-      setSelectedFile(null);
-      setFileDescription('');
-      setShowDescriptionInput(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+      try {
+        const result = JSON.parse(responseText);
+        setUploadStatus({
+          type: 'success',
+          message: 'Dataset uploaded successfully!'
+        });
+        setSelectedFile(null);
+        setFileDescription('');
+        setShowDescriptionInput(false);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+        
+        await fetchDatasets(); // 重新获取数据集列表
+      } catch (parseError) {
+        console.error('Success response parsing error:', parseError);
+        throw new Error('Invalid server response format');
       }
-      
-      await fetchDatasets(); // 重新获取数据集列表
     } catch (error) {
       console.error('Upload error:', error);
       setUploadStatus({
@@ -441,10 +473,10 @@ const Dataset = () => {
                 </p>
                 
                 <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
-                  <div>Size: {formatFileSize(dataset.fileSize)}</div>
-                  <div>Format: {dataset.fileType}</div>
-                  <div>Updated: {dataset.uploadedAt ? new Date(dataset.uploadedAt.seconds ? dataset.uploadedAt.seconds * 1000 : dataset.uploadedAt).toLocaleDateString() : 'N/A'}</div>
-                  <div>Downloads: {dataset.downloads}</div>
+                  <div>Size: {formatFileSize(dataset.size)}</div>
+                  <div>Format: {getFileExtension(dataset.name)}</div>
+                  <div>Updated: {dataset.updatedAt ? new Date(dataset.updatedAt).toLocaleDateString() : 'N/A'}</div>
+                  <div>Downloads: {dataset.downloads || 0}</div>
                   <div className="col-span-2 flex flex-wrap gap-2 mt-2">
                     <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
                       {dataset.category}

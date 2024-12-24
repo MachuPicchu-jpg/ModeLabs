@@ -36,26 +36,27 @@ def check_model_evaluation_status(model_id):
     """Check if a model has been evaluated by looking at Firebase rankings"""
     try:
         # Check language model rankings
-        lang_doc = db.collection('language-models').document(model_id).get()
+        lang_doc = db.collection('language-model-rankings').document(model_id).get()
         if lang_doc.exists:
             data = lang_doc.to_dict()
-            # Only consider evaluated if all scores are present and non-zero
+            # Check if all required fields in language model evaluation are > 0
             return all(data.get(field, 0) > 0 for field in ['mathematics', 'coding', 'knowledge_usage', 'organization'])
         
-        # Check multimodal model rankings
-        multi_doc = db.collection('multimodal-models').document(model_id).get()
+        # Check multimodal model rankings (if this collection exists in the future)
+        multi_doc = db.collection('multimodal-model-rankings').document(model_id).get()
         if multi_doc.exists:
             data = multi_doc.to_dict()
-            # Only consider evaluated if all scores are present and non-zero
+            # Check if all required fields in multimodal model evaluation are > 0
             return all(data.get(field, 0) > 0 for field in ['visual_recognition', 'audio_processing', 'text_understanding', 'integration'])
         
+        # If no valid document is found
         return False
     except Exception as e:
         print(f"Error checking evaluation status: {e}")
         return False
 
 def evaluate_model(model_id=None):
-    """Evaluate a specific model or all models if no ID is provided"""
+    """Evaluate a specific model or all models if no ID is provided, skipping already evaluated models"""
     try:
         print("\nFetching models from Firebase...")
         model_list = []
@@ -63,8 +64,14 @@ def evaluate_model(model_id=None):
         # Fetch language models
         lang_models_ref = db.collection('language-models')
         if model_id:
+            # If specific model_id is provided
             model = lang_models_ref.document(model_id).get()
             if model.exists:
+                # Check if model has already been evaluated
+                if check_model_evaluation_status(model_id):
+                    print(f"Model {model_id} has already been evaluated. Skipping...")
+                    return
+                
                 data = model.to_dict()
                 data['id'] = model.id
                 data['model_type'] = 'Large Language'
@@ -72,6 +79,11 @@ def evaluate_model(model_id=None):
         else:
             # Fetch all language models
             for model in lang_models_ref.stream():
+                # Skip if already evaluated
+                if check_model_evaluation_status(model.id):
+                    print(f"Model {model.id} has already been evaluated. Skipping...")
+                    continue
+                
                 data = model.to_dict()
                 data['id'] = model.id
                 data['model_type'] = 'Large Language'
@@ -80,13 +92,18 @@ def evaluate_model(model_id=None):
             # Fetch all multimodal models
             multi_models_ref = db.collection('multimodal-models')
             for model in multi_models_ref.stream():
+                # Skip if already evaluated
+                if check_model_evaluation_status(model.id):
+                    print(f"Model {model.id} has already been evaluated. Skipping...")
+                    continue
+                
                 data = model.to_dict()
                 data['id'] = model.id
                 data['model_type'] = 'Multimodal'
                 model_list.append(data)
 
         if not model_list:
-            print("No models found in Firebase")
+            print("No models found that need evaluation")
             return
 
         for model in model_list:
@@ -210,31 +227,45 @@ def evaluate_example(model, prompt):
             'Authorization': f"Bearer {model.get('api_token', '')}"
         }
         
+        # Base payload structure
         data = {
             'model': model.get('model_name', ''),
-            'messages': [
-                {
-                    'role': 'user',
-                    'content': [
-                        {
-                            'type': 'text',
-                            'text': prompt
-                        }
-                    ]
-                }
-            ],
-            'stream': True,
+            'stream': False,
+            'max_tokens': 512,
+            'stop': ["null"],
             'temperature': 0.7,
-            'max_tokens': 800
+            'top_p': 0.7,
+            'top_k': 50,
+            'frequency_penalty': 0.5,
+            'n': 1,
+            'response_format': {"type": "text"}
         }
+
+        # Different message format for LLM vs Multimodal
+        if model['model_type'] == 'Large Language':
+            data['messages'] = [{
+                'role': 'user',
+                'content': prompt
+            }]
+        else:
+            # For multimodal models
+            data['messages'] = [{
+                'role': 'user',
+                'content': [
+                    {
+                        'type': 'image_url',
+                        'image_url': {
+                            'url': prompt,  # Assuming prompt is an image URL for multimodal
+                            'detail': 'auto'
+                        }
+                    }
+                ]
+            }]
         
         # Ensure API URL is correct
         api_url = model['api_url'].rstrip('/')
         if not any(api_url.endswith(endpoint) for endpoint in ['/chat/completions', '/v1/chat/completions']):
-            if '/v1' in api_url:
-                api_url = f"{api_url}/chat/completions"
-            else:
-                api_url = f"{api_url}/v1/chat/completions"
+            api_url = f"{api_url}/v1/chat/completions"
         
         print(f"Making API request to: {api_url}")
         print(f"Request data: {json.dumps(data, indent=2)}")
@@ -247,32 +278,13 @@ def evaluate_example(model, prompt):
         )
         
         if response.status_code == 200:
-            # Handle streaming response
-            full_response = ""
-            for line in response.iter_lines():
-                if line:
-                    try:
-                        line_text = line.decode('utf-8')
-                        if line_text.startswith('data: '):
-                            line_text = line_text[6:]  # Remove 'data: ' prefix
-                        if line_text.strip() == '[DONE]':
-                            continue
-                        json_response = json.loads(line_text)
-                        if 'choices' in json_response and len(json_response['choices']) > 0:
-                            delta = json_response['choices'][0].get('delta', {})
-                            if isinstance(delta.get('content'), list):
-                                for content in delta['content']:
-                                    if content.get('type') == 'text':
-                                        full_response += content.get('text', '')
-                            elif 'content' in delta:
-                                full_response += delta['content']
-                    except json.JSONDecodeError:
-                        continue
-            return full_response
+            response_data = response.json()
+            if 'choices' in response_data and len(response_data['choices']) > 0:
+                return response_data['choices'][0].get('message', {}).get('content', '')
+            return ''
         else:
             print(f"API request failed with status code: {response.status_code}")
             print(f"Response content: {response.text}")
-            print(f"Request headers: {headers}")
             return ""
             
     except Exception as e:

@@ -84,7 +84,30 @@ const Leaderboard = () => {
                 updated_at: new Date().toISOString()
             };
 
-            await addDoc(collection(db, collectionName), modelData);
+            // Add the model to Firebase
+            const docRef = await addDoc(collection(db, collectionName), modelData);
+            
+            // Trigger model evaluation
+            try {
+                console.log('Triggering evaluation for new model...');
+                const response = await fetch('http://localhost:3001/api/evaluate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        modelId: docRef.id,
+                        modelType: newModel.model_type
+                    })
+                });
+
+                if (!response.ok) {
+                    console.error('Failed to trigger model evaluation');
+                }
+            } catch (evalError) {
+                console.error('Error triggering model evaluation:', evalError);
+            }
+
             setIsModalOpen(false);
             setNewModel({
                 model_name: '',

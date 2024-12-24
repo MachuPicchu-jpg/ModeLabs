@@ -1,36 +1,38 @@
-import express from 'express';
-import cors from 'cors';
-import { PrismaClient } from '@prisma/client';
-import { initializeEvaluationSystem } from './services/evaluationService';
-import * as dotenv from 'dotenv';
-import './config/firebase'; // This will initialize Firebase
+import app from './app';
+import { config } from 'dotenv';
+import fs from 'fs/promises';
+import path from 'path';
 
 // Load environment variables
-dotenv.config();
+config();
 
-const app = express();
 const port = process.env.PORT || 3001;
 
-// Initialize Prisma
-export const prisma = new PrismaClient();
-
-app.use(cors());
-app.use(express.json());
-
-// Import and use routes
-import evaluationRoutes from './routes/evaluationRoutes';
-app.use('/api/evaluation', evaluationRoutes);
-
-// Start the server and initialize evaluation system
-app.listen(port, async () => {
-  console.log(`Server is running on port ${port}`);
+// Ensure upload directory exists
+async function ensureUploadDirectory() {
+  const uploadDir = path.join(process.cwd(), 'uploads/datasets');
   try {
-    console.log('Initializing evaluation system...');
-    await initializeEvaluationSystem();
-    console.log('Evaluation system initialized successfully');
-  } catch (error) {
-    console.error('Failed to initialize evaluation system:', error);
+    await fs.access(uploadDir);
+    console.log('Upload directory exists:', uploadDir);
+  } catch {
+    console.log('Creating upload directory:', uploadDir);
+    await fs.mkdir(uploadDir, { recursive: true });
   }
-});
+}
 
-export default app; 
+// Start server
+async function startServer() {
+  try {
+    await ensureUploadDirectory();
+    
+    app.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
+      console.log(`Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+startServer(); 

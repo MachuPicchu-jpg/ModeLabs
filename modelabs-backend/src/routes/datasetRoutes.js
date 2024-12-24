@@ -1,19 +1,19 @@
-import express, { Request, Response } from 'express';
-import multer from 'multer';
-import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
-import { DatasetService } from '../services/datasetService';
-import fs from 'fs/promises';
+const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const { v4: uuidv4 } = require('uuid');
+const fs = require('fs').promises;
+const { PrismaClient } = require('@prisma/client');
 
 const router = express.Router();
-const datasetService = new DatasetService();
+const prisma = new PrismaClient();
 
 // Configure multer storage
 const storage = multer.diskStorage({
-  destination: (req: express.Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
+  destination: (req, file, cb) => {
     cb(null, 'uploads/datasets/');
   },
-  filename: (req: express.Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
+  filename: (req, file, cb) => {
     const uniqueId = uuidv4();
     cb(null, `${uniqueId}-${file.originalname}`);
   }
@@ -24,7 +24,7 @@ const upload = multer({
   limits: {
     fileSize: 100 * 1024 * 1024 // 100MB
   },
-  fileFilter: (req: express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  fileFilter: (req, file, cb) => {
     const allowedExtensions = ['.json', '.jsonl', '.csv', '.xlsx', '.yaml', '.yml', '.tsv'];
     const ext = path.extname(file.originalname).toLowerCase();
     if (allowedExtensions.includes(ext)) {
@@ -49,9 +49,29 @@ async function ensureUploadDir() {
 ensureUploadDir();
 
 // Get all datasets
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (req, res) => {
   try {
-    const datasets = await datasetService.getAllDatasets();
+    const datasets = await prisma.dataset.findMany({
+      orderBy: {
+        createdAt: 'desc'
+      },
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        size: true,
+        description: true,
+        userId: true,
+        userEmail: true,
+        category: true,
+        subCategory: true,
+        downloads: true,
+        visibility: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true
+      }
+    });
     res.json(datasets);
   } catch (error) {
     console.error('Error fetching datasets:', error);
@@ -60,7 +80,7 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // Upload dataset
-router.post('/upload', upload.single('file'), async (req: express.Request, res: Response) => {
+router.post('/upload', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
@@ -75,30 +95,43 @@ router.post('/upload', upload.single('file'), async (req: express.Request, res: 
       return res.status(500).json({ error: 'File upload failed' });
     }
 
-    const dataset = await datasetService.createDataset({
-      name: req.body.name,
-      type: req.body.type || 'text',
-      path: req.file.path,
-      size: req.file.size,
-      description: req.body.description,
-      userId: req.body.userId,
-      userEmail: req.body.userEmail,
-      category: req.body.category,
-      subCategory: req.body.subCategory,
-      visibility: req.body.visibility || 'public',
-      status: req.body.status || 'completed',
-      downloads: 0
+    // Get file size from the actual file
+    const stats = await fs.stat(req.file.path);
+    const fileSize = stats.size;
+
+    const dataset = await prisma.dataset.create({
+      data: {
+        id: uuidv4(),
+        name: req.body.name,
+        type: req.body.type || 'text',
+        path: req.file.path,
+        size: fileSize,
+        description: req.body.description,
+        userId: req.body.userId,
+        userEmail: req.body.userEmail,
+        category: req.body.category,
+        subCategory: req.body.subCategory,
+        downloads: 0,
+        visibility: req.body.visibility || 'public',
+        status: req.body.status || 'completed'
+      }
     });
 
     res.status(200).json({
       id: dataset.id,
       name: dataset.name,
-      description: dataset.description,
+      type: dataset.type,
       size: dataset.size,
+      description: dataset.description,
+      userId: dataset.userId,
+      userEmail: dataset.userEmail,
       category: dataset.category,
       subCategory: dataset.subCategory,
       downloads: dataset.downloads,
+      visibility: dataset.visibility,
+      status: dataset.status,
       createdAt: dataset.createdAt,
+      updatedAt: dataset.updatedAt,
       message: 'Dataset uploaded successfully'
     });
   } catch (error) {
@@ -112,9 +145,12 @@ router.post('/upload', upload.single('file'), async (req: express.Request, res: 
 });
 
 // Download dataset
-router.get('/download/:id', async (req: Request, res: Response) => {
+router.get('/download/:id', async (req, res) => {
   try {
-    const dataset = await datasetService.getDataset(req.params.id);
+    const dataset = await prisma.dataset.findUnique({
+      where: { id: req.params.id }
+    });
+    
     if (!dataset) {
       return res.status(404).json({ error: 'Dataset not found' });
     }
@@ -124,7 +160,15 @@ router.get('/download/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'File not found' });
     }
 
-    await datasetService.updateDownloads(dataset.id);
+    await prisma.dataset.update({
+      where: { id: dataset.id },
+      data: {
+        downloads: {
+          increment: 1
+        }
+      }
+    });
+
     res.download(filePath);
   } catch (error) {
     console.error('Download error:', error);
@@ -132,4 +176,4 @@ router.get('/download/:id', async (req: Request, res: Response) => {
   }
 });
 
-export default router;
+module.exports = router; 
