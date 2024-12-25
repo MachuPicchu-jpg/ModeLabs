@@ -1,51 +1,107 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { auth } from '../config/firebase';
+import { auth, db } from '../config/firebase';
 import { updateProfile, signOut } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { Home, LogOut } from 'lucide-react';
 
 const Profile = () => {
   const { user } = useAuth();
+  console.log('User.pic:', user.photoURL);
   const navigate = useNavigate();
   const [userModels, setUserModels] = useState([]);
   const [userInfo, setUserInfo] = useState({
     displayName: user?.displayName || '',
     email: user?.email || '',
-    photoURL: user?.photoURL || '',
+    photoURL: user?.photoURL || '../logo.svg', // 设置默认头像
     bio: '',
     organization: '',
     role: ''
   });
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [newPhoto, setNewPhoto] = useState(null);
+  const fileInputRef = useRef(null);
 
   // Fetch user's models and data (implement this based on your database structure)
   useEffect(() => {
     const fetchUserData = async () => {
-      // Add your database fetching logic here
-      // Example:
-      // const models = await fetchUserModels(user.uid);
-      // setUserModels(models);
+      if (user) {
+        // 从 Firestore 获取用户数据
+        const userDoc = doc(db, `users/${user.uid}`);
+        const userSnapshot = await getDoc(userDoc);
+        if (userSnapshot.exists()) {
+          const userData = userSnapshot.data();
+          setUserInfo((prevState) => ({
+            ...prevState,
+            bio: userData.bio || '',
+            organization: userData.organization || '',
+            role: userData.role || '',
+            photoURL: userData.photoURL || '../logo.svg' // 从 Firestore 中获取 photoURL
+          }));
+        }
+      }
     };
 
-    if (user) {
-      fetchUserData();
-    }
+    fetchUserData();
   }, [user]);
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     setLoading(true);
+    console.log('UserInfo before update:', userInfo); // Add this line to log userInfo before update
     try {
       await updateProfile(auth.currentUser, {
-        displayName: userInfo.displayName,
-        photoURL: userInfo.photoURL
+        displayName: userInfo.displayName
       });
-      // Update additional user info in your database here
+
+      // Update additional user info in Firestore
+      const userDoc = doc(db, `users/${user.uid}`);
+      await setDoc(userDoc, {
+        bio: userInfo.bio,
+        organization: userInfo.organization,
+        role: userInfo.role,
+        photoURL: userInfo.photoURL
+      }, { merge: true });
+
       setIsEditing(false);
     } catch (error) {
       console.error('Error updating profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePhotoUpload = async (file) => {
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('userId', user.uid);
+
+      const response = await fetch('http://localhost:3001/api/users/uploadphoto', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload photo');
+      }
+
+      const data = await response.json();
+      const photoURL = data.url;
+
+      // Update photoURL in Firestore
+      const userDoc = doc(db, `users/${user.uid}`);
+      await setDoc(userDoc, { photoURL }, { merge: true });
+
+      setUserInfo((prevState) => ({
+        ...prevState,
+        photoURL
+      }));
+    } catch (error) {
+      console.error('Error uploading photo:', error);
     } finally {
       setLoading(false);
     }
@@ -60,37 +116,15 @@ const Profile = () => {
     }
   };
 
-  const ProfileNavigation = () => {
-    const navigate = useNavigate();
-    
-    return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <button
-          onClick={() => navigate('/model')}
-          className="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
-        >
-          <h3 className="font-medium">Models</h3>
-        </button>
-        <button
-          onClick={() => navigate('/dataset')}
-          className="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
-        >
-          <h3 className="font-medium">Datasets</h3>
-        </button>
-        <button
-          onClick={() => navigate('/test')}
-          className="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
-        >
-          <h3 className="font-medium">Test</h3>
-        </button>
-        <button
-          onClick={() => navigate('/ai-recommend')}
-          className="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
-        >
-          <h3 className="font-medium">AI Recommend</h3>
-        </button>
-      </div>
-    );
+  const handlePhotoClick = () => {
+    fileInputRef.current.click();
+  };
+
+  const handlePhotoChange = (e) => {
+    if (e.target.files[0]) {
+      setNewPhoto(e.target.files[0]);
+      handlePhotoUpload(e.target.files[0]);
+    }
   };
 
   return (
@@ -98,13 +132,13 @@ const Profile = () => {
       <div className="max-w-7xl mx-auto">
         {/* Navigation Bar */}
         <div className="mb-6 flex justify-between items-center">
-          <button
-            onClick={() => navigate('/')}
-            className="flex items-center space-x-2 px-4 py-2 bg-white rounded-lg shadow hover:bg-gray-50 transition-colors"
-          >
-            <Home className="w-5 h-5" />
-            <span>Back to Home</span>
-          </button>
+        <button
+  onClick={() => navigate('/')}
+  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition-colors"
+>
+  <Home className="w-5 h-5" />
+  <span>Back to Home</span>
+</button>
 
           <button
             onClick={handleLogout}
@@ -112,7 +146,7 @@ const Profile = () => {
           >
             <LogOut className="w-5 h-5" />
             <span>Log Out</span>
-          </button>
+            </button>
         </div>
 
         <div className="bg-white shadow rounded-lg">
@@ -139,9 +173,17 @@ const Profile = () => {
                   <div className="space-y-4">
                     <div className="flex justify-center">
                       <img
-                        src={userInfo.photoURL || 'default-avatar.png'}
+                        src={userInfo.photoURL || '../logo.svg'}
                         alt="Profile"
-                        className="h-32 w-32 rounded-full"
+                        className="h-32 w-32 rounded-full cursor-pointer"
+                        onClick={handlePhotoClick}
+                      />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        ref={fileInputRef}
+                        onChange={handlePhotoChange}
+                        style={{ display: 'none' }}
                       />
                     </div>
                     {isEditing ? (

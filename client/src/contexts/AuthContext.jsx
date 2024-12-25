@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { auth } from '../config/firebase';
+import { auth, db } from '../config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 
 const AuthContext = createContext();
 
@@ -17,7 +18,7 @@ export function AuthProvider({ children }) {
   const adminEmails = ['admin1@example.com', 'liu-mq22@mails.tsinghua.edu.cn'];
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         // 判断用户 email 是否在管理员列表中
         if (adminEmails.includes(user.email)) {
@@ -25,7 +26,22 @@ export function AuthProvider({ children }) {
         } else {
           setRole('user');
         }
-        setUser({ uid: user.uid, email: user.email }); // 存储用户 UID 和 email
+
+        // 从 Firestore 获取更多的用户信息
+        const userDoc = doc(db, `users/${user.uid}`);
+        const userSnapshot = await getDoc(userDoc);
+        const userData = userSnapshot.exists() ? userSnapshot.data() : {};
+
+        // 存储更多的用户信息
+        setUser({
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: userData.photoURL || user.photoURL, // 从 Firestore 中获取 photoURL
+          bio: userData.bio || '',
+          organization: userData.organization || '',
+          role: role
+        });
       } else {
         setRole('user');
         setUser(null);

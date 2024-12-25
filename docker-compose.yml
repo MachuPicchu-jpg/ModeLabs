@@ -1,11 +1,10 @@
-version: '3.8'
 
 services:
   # Nginx 服务，用于托管 React 静态文件并反向代理 API 请求
   nginx:
     image: nginx:latest
     ports:
-      - "80:80"   # 将宿主机的 80 端口映射到 Nginx 容器的 80 端口
+      - "8000:80"   # 将宿主机的 8000 端口映射到 Nginx 容器的 80 端口
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf  # 自定义 Nginx 配置文件
       - ./client/build:/usr/share/nginx/html     # React 构建后的静态文件
@@ -18,7 +17,7 @@ services:
     build:
       context: ./client
     environment:
-      - REACT_APP_API_URL=http://server:5000  # 后端 API 地址
+      - REACT_APP_API_URL=${REACT_APP_API_URL}  # 后端 API 地址
       - REACT_APP_FIREBASE_API_KEY=${REACT_APP_FIREBASE_API_KEY}  # Firebase API 配置
       - REACT_APP_FIREBASE_AUTH_DOMAIN=${REACT_APP_FIREBASE_AUTH_DOMAIN}
       - REACT_APP_FIREBASE_PROJECT_ID=${REACT_APP_FIREBASE_PROJECT_ID}
@@ -26,11 +25,8 @@ services:
       - REACT_APP_FIREBASE_MESSAGING_SENDER_ID=${REACT_APP_FIREBASE_MESSAGING_SENDER_ID}
       - REACT_APP_FIREBASE_APP_ID=${REACT_APP_FIREBASE_APP_ID}
       - REACT_APP_FIREBASE_MEASUREMENT_ID=${REACT_APP_FIREBASE_MEASUREMENT_ID}
-    command: ["npm", "run", "build"]  # 在生产环境中构建 React 应用
     depends_on:
       - server
-    ports:
-      - "3000:80"
 
   # Prisma 后端服务
   server:
@@ -38,25 +34,25 @@ services:
       context: ./server
     environment:
       - DATABASE_URL=${DATABASE_URL}  # 数据库连接字符串
-      - FIREBASE_SERVICE_ACCOUNT_KEY_PATH=/path/to/firebase-service-account-key.json  # Firebase 服务密钥路径
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+      - FIREBASE_CLIENT_EMAIL=${FIREBASE_CLIENT_EMAIL}
+      - FIREBASE_PRIVATE_KEY=${FIREBASE_PRIVATE_KEY}
     volumes:
       - ./server:/app
-      - ./server/firebase-service-account-key.json:/path/to/firebase-service-account-key.json  # 挂载 Firebase 密钥文件
     depends_on:
       - db  # 确保数据库服务先启动
-    command: ["npm", "run", "dev"]  # 启动 Node.js 后端服务
+    command: ["sh", "-c", "npx prisma migrate dev --name init && npm run start"]  # 启动 Node.js 后端服务并运行数据库迁移
 
   # PostgreSQL 数据库服务
   db:
-    image: postgres:13
+    image: postgres:latest
     environment:
       - POSTGRES_USER=${POSTGRES_USER}  # 数据库用户名
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}  # 数据库密码
       - POSTGRES_DB=${POSTGRES_DB}  # 数据库名称
     volumes:
       - db_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-
+    expose:
+      - "5432"  # 将数据库服务端口暴露给其他服务
 volumes:
   db_data: {}  # 数据持久化卷

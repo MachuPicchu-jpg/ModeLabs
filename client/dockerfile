@@ -1,11 +1,23 @@
-# 使用 Nginx 作为基础镜像
-FROM nginx:alpine
+# 使用 Node.js 镜像构建前端
+FROM node:18.18.2 as build
 
-# 复制构建后的 React 静态文件到 Nginx 的默认 HTML 目录
-COPY build/ /usr/share/nginx/html
+# 设置工作目录
+WORKDIR /app
 
-# 暴露端口 80
+# 复制依赖文件并安装依赖
+COPY package*.json ./
+RUN npm install
+
+# 复制源代码并构建项目
+COPY . .
+RUN npm run build  # 构建生产环境的 React 应用
+
+# 使用 Nginx 提供服务
+FROM nginx:latest
+
+# 将 React 构建的静态文件复制到 Nginx 容器
+COPY --from=build /app/build /usr/share/nginx/html
+
+# 暴露 Nginx 服务端口
 EXPOSE 80
 
-# 启动 Nginx
-CMD ["nginx", "-g", "daemon off;"]
