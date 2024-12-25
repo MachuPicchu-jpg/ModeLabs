@@ -22,6 +22,7 @@ import Login from './pages/Login';
 import Profile from './pages/Profile';
 import Dataset from './pages/Dataset';
 import Test from './pages/Test';
+import EvaluationResult from './pages/EvaluationResult';
 import PrivateRoute from './components/PrivateRoute';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -85,6 +86,14 @@ root.render(
               element={
                 <PrivateRoute>
                   <Test />
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/evaluation" 
+              element={
+                <PrivateRoute>
+                  <EvaluationResult />
                 </PrivateRoute>
               } 
             />
