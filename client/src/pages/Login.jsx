@@ -36,7 +36,7 @@ const Login = () => {
       } else {
         await signInWithEmailAndPassword(auth, formData.email, formData.password);
       }
-      navigate('/profile');
+      navigate('/');
     } catch (error) {
       setError(error.message);
     } finally {
@@ -50,7 +50,7 @@ const Login = () => {
       setError('');
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-      navigate('/profile');
+      navigate('/');
     } catch (error) {
       setError(error.message);
     } finally {

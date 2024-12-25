@@ -3,13 +3,14 @@ const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
 const { PrismaClient } = require('@prisma/client'); // 导入 PrismaClient
-const { admin } = require('../config/firebase');
+const { evaluateModel } = require('../services/evaluation_service');
+const admin = require('firebase-admin');
 const datasetRoutes = require('../routes/datasetRoutes');
-const evaluationRoutes = require('../routes/evaluationRoutes');
 
 const app = express();
 const port = process.env.PORT || 3001;
 
+// 配置 multer 以保留原始文件名
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/');
@@ -23,6 +24,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 const prisma = new PrismaClient(); // 初始化 PrismaClient
+
 // Enable CORS for frontend requests
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
@@ -33,6 +35,9 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Dataset routes
+app.use('/api/datasets', datasetRoutes);
 
 // 上传图片并返回图片的 URL
 app.post('/api/users/uploadphoto', upload.single('file'), async (req, res) => {
@@ -51,7 +56,10 @@ app.post('/api/users/uploadphoto', upload.single('file'), async (req, res) => {
     // 如果用户不存在，则创建一个新用户
     if (!user) {
       user = await prisma.user.create({
-        data: { id: userId, photoURL }
+        data: {
+          id: userId,
+          photoURL
+        }
       });
     } else {
       // 更新用户的 photoURL
@@ -72,17 +80,12 @@ console.log('__dirname:', __dirname);
 
 // 提供静态文件服务
 app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
-// Dataset routes
-app.use('/api/datasets', datasetRoutes);
 
-// Evaluation routes
-app.use('/api/evaluation', evaluationRoutes);
-
-// Legacy API endpoint to trigger model evaluation
+// API endpoint to trigger model evaluation
 app.post('/api/evaluate', async (req, res) => {
   try {
     const { modelId, modelType } = req.body;
-    
+
     if (!modelId || !modelType) {
       return res.status(400).json({ error: 'Missing required parameters' });
     }
@@ -91,7 +94,7 @@ app.post('/api/evaluate', async (req, res) => {
     const collectionName = modelType === 'Large Language' ? 'language-models' : 'multimodal-models';
     const modelDoc = await admin.firestore().collection(collectionName).doc(modelId).get();
 
-    if (!modelDoc.exists) {
+    if (!modelDoc.exists()) {
       return res.status(404).json({ error: 'Model not found' });
     }
 
@@ -101,24 +104,13 @@ app.post('/api/evaluate', async (req, res) => {
       model_type: modelType
     };
 
-    // Create an evaluation task
-    const task = {
-      modelId,
-      modelType,
-      status: 'pending',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    const taskRef = await admin.firestore().collection('evaluation-tasks').add(task);
-
-    // Return success immediately
-    res.json({
-      success: true,
-      message: 'Evaluation task created',
-      taskId: taskRef.id
+    // Start evaluation in background
+    evaluateModel(modelData).catch(error => {
+      console.error('Error during model evaluation:', error);
     });
 
+    // Return success immediately
+    res.json({ message: 'Evaluation started' });
   } catch (error) {
     console.error('Error handling evaluation request:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -135,4 +127,4 @@ app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
-module.exports = app; 
+module.exports = app;

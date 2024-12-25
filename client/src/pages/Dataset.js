@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 const ALLOWED_EXTENSIONS = ['.json', '.jsonl', '.csv', '.xlsx', '.yaml', '.yml', '.tsv'];
-const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+const MAX_FILE_SIZE = 2048 * 1024 * 1024; // 100MB
 const API_BASE_URL = 'http://localhost:3001'; // 添加后端API基础URL
 
 // Helper function to get file extension
@@ -66,6 +66,7 @@ const Dataset = () => {
         throw new Error('Failed to fetch datasets');
       }
       const datasetsData = await response.json();
+
       setDatasets(datasetsData);
     } catch (error) {
       console.error('Error fetching datasets:', error);
@@ -197,6 +198,7 @@ const Dataset = () => {
   };
 
   const handleDelete = async (datasetId) => {
+    console.log('Deleting dataset:', datasetId);
     try {
       const response = await fetch(`${API_BASE_URL}/api/datasets/${datasetId}`, {
         method: 'DELETE'
@@ -254,7 +256,7 @@ const Dataset = () => {
             <div className="flex-1">
               <h3 className="text-lg font-semibold mb-2">Upload New Dataset</h3>
               <p className="text-gray-600 text-sm">
-                Share your dataset with the community. Maximum file size: 1MB
+                Share your dataset with the community. Maximum file size: 1GB
               </p>
             </div>
             <div className="flex items-center gap-4">
@@ -501,26 +503,13 @@ const Dataset = () => {
                     </button>
                     {dataset.userId === user?.uid && (
                       <button 
-                        onClick={() => handleDelete(dataset)}
+                        onClick={() => handleDelete(dataset.id)}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
                         title="Delete dataset"
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>
                     )}
-                    <button 
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-                      title="View details"
-                    >
-                      <ExternalLink className="w-5 h-5" />
-                    </button>
-                    <button
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-full"
-                      title="Delete dataset"
-                      onClick={() => handleDelete(dataset.id)}
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
                   </div>
                 </div>
               </div>

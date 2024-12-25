@@ -3,6 +3,7 @@ import { MessageSquare, Code, BookOpen, Brain, Send, Sparkles, Globe } from 'luc
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { Layout } from './components/Layout';
 
 
 const WelcomePage = () => {
@@ -68,17 +69,43 @@ const WelcomePage = () => {
 
   const handleScenarioClick = (scenario) => {
     setActiveScenario(scenario);
+    let recommendation = '';
+  
+    switch (scenario.id) {
+      case 'chat':
+        recommendation = t(
+          '根据您的需求，我们推荐：\n1. deepseek-ai/DeepSeek-V2.5\n2. Qwen/Qwen2-VL-72B-Instruct\n3. meta-llama/Llama-3.3-70B-Instruct'
+        );
+        break;
+      case 'coding':
+        recommendation = t(
+          '根据您的需求，我们推荐：\n1. deepseek-ai/DeepSeek-V2.5\n2. Qwen/Qwen2-VL-72B-Instruct\n3. meta-llama/Llama-3.3-70B-Instruct'
+        );
+        break;
+      case 'study':
+        recommendation = t(
+          '根据您的需求，我们推荐：\n1. Qwen/Qwen2-VL-72B-Instruct\n2. meta-llama/Llama-3.3-70B-Instruct\n3. deepseek-ai/DeepSeek-V2.5'
+        );
+        break;
+      case 'research':
+        recommendation = t(
+          '根据您的需求，我们推荐：\n1. Qwen/Qwen2-VL-72B-Instruct\n2. deepseek-ai/DeepSeek-V2.5\n3. meta-llama/Llama-3.3-70B-Instruct'
+        );
+        break;
+      default:
+        recommendation = t('没有找到合适的推荐');
+    }
+  
     setMessages([
       {
         id: Date.now(),
         type: 'system',
-        content: t(
-          '根据您的需求，我们推荐：\n1. Claude 3.5 - 最自然的对话体验\n2. GPT-4 - 强大的通用对话能力\n3. Gemini Pro - 优秀的多模态交互'
-        ),
+        content: recommendation,
       },
     ]);
     setIsCustomInput(false);
   };
+  
 
   const handleCustomInputClick = () => {
     setIsCustomInput(true);
@@ -142,6 +169,7 @@ const WelcomePage = () => {
   };
 
   return (
+    <Layout>
     <div className="min-h-screen bg-[#FAFAFA] font-sans relative">
       {/* Main gradient background */}
       <div className="absolute inset-0 bg-gradient-to-b from-gray-50/50 to-white/80 -z-10" />
@@ -413,6 +441,7 @@ const WelcomePage = () => {
         </div>
       </div>
     </div>
+    </Layout>
   );
 };
 

@@ -91,3 +91,17 @@ model MultimodalModelRanking {
 
   @@map("multimodal_model_rankings")
 }
+
+model User {
+  id              String   @id @default(cuid())
+  displayName     String?
+  email           String?   @unique
+  photoURL        String?  // 添加 photoURL 字段
+  bio             String?
+  organization    String?
+  role            String?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @default(now()) @updatedAt
+
+  @@map("users")
+}
