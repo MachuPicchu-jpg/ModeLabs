@@ -122,7 +122,11 @@ const Navbar = () => {
       // 更新 Firebase 中的显示名称和头像
       await updateProfile(auth.currentUser, {
         displayName: userInfo.displayName,
+<<<<<<< HEAD
         photoURL: newPhoto || userInfo.photoURL||'https://localhost:3001/uploads/default.jpg',
+=======
+        photoURL: newPhoto || userInfo.photoURL,
+>>>>>>> 0eff355281aeef43e742d9eb453d032df412e6a6
       });
       
       // 更新 Firestore 中的个人信息
@@ -150,7 +154,11 @@ const Navbar = () => {
         email: user.email,
         bio: user.bio || '',  // 默认给空字符串，防止 undefined
         organization: user.organization || '', // 加入组织字段
+<<<<<<< HEAD
         photoURL: user.photoURL||null,
+=======
+        photoURL: user.photoURL,
+>>>>>>> 0eff355281aeef43e742d9eb453d032df412e6a6
       });
     }
   }, [user]);
@@ -179,16 +187,24 @@ const Navbar = () => {
         <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden">
           {/* 用户头像和基本信息 */}
           <div className="px-6 py-5 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-center">
+<<<<<<< HEAD
             {user.photoURL ? (
             <img
               src={newPhoto || user.photoURL || 'https://localhost:3001/uploads/default.jpg'}
+=======
+            <img
+              src={newPhoto || user.photoURL || '../logo.svg'}
+>>>>>>> 0eff355281aeef43e742d9eb453d032df412e6a6
               alt="Profile"
               className="h-16 w-16 rounded-full mx-auto cursor-pointer"
               onClick={handlePhotoClick}
             />
+<<<<<<< HEAD
             ):(
             <UserCircle2 className="w-16 h-16 mx-auto cursor-pointer" onClick={handlePhotoClick} />
             )}
+=======
+>>>>>>> 0eff355281aeef43e742d9eb453d032df412e6a6
             <input
               type="file"
               accept="image/*"
