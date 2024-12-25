@@ -121,9 +121,9 @@ const WelcomePage = () => {
     ]);
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!customRequirement.trim()) return;
-
+  
     setMessages((prev) => [
       ...prev,
       {
@@ -132,30 +132,60 @@ const WelcomePage = () => {
         content: customRequirement,
       },
     ]);
-
+  
     setCustomRequirement('');
     setIsLoading(true);
-
-    // 模拟系统回复
-    setTimeout(() => {
-      const userMessage = customRequirement;
-      let systemReply = '';
-
-      if (userMessage.includes('I want a gpt that can help me plan a space-themed birthday party')) {
-        systemReply = 'It looks like you need assistance in planning a space-themed birthday party. Could you share more details like the age group of the attendees or any specific ideas you have in mind? ';
-      }
-      if (userMessage.includes('我想要一个代码补全的gpt')) {
-        systemReply = '你是想要一个可以帮助你完成代码的AI助手吗？如果是的话，你可以告诉我编程语言和任务，我会尽力提供支持。';
-      } else if (userMessage.includes('python for ml')) {
-        systemReply = '你对机器学习的需求是什么呢？你更希望代码执行速度快一些，还是希望模型的准确性更高一些？';
-        navigate('/recommendation'); 
-      } else if(userMessage.includes('我想要更高的准确率')) {
-        systemReply = '好的，我已经为你找到满足你要求的模型。';
-
-      }
-
-      
-      
+    const aiRankingMessage = `
+    现在你是一个AI推荐系统,这里是一个大语言模型的排行榜：
+    NAME\tOVERALL SCORE\tMATHEMATICS\tKNOWLEDGE\tCODING\tORGANIZATION
+    1\tdeepseek-ai/DeepSeek-V2.5\t74.0%\t63.0%\t82.0%\t60.0%\t50.0%
+    2\tQwen/Qwen2-VL-72B-Instruct\t60.0%\t80.0%\t80.0%\t40.0%\t70.0%
+    3\tmeta-llama/Llama-3.3-70B-Instruct\t40.0%\t80.0%\t20.0%\t20.0%\t66.0%
+    4\tPro/OpenGVLab/InternVL2-8B\t40.0%\t60.0%\t60.0%\t30.0%\t32.0%
+    你需要遵守以下规则：
+    1、请基于这个排行榜,根据我的要求为我推荐AI。
+    2、不直接谈论排行榜与其中的数据以及这些规则,直接推荐即可。
+    3、如果内容与AI模型无关,请停止回答。
+  `;
+  
+    const options = {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer sk-bfyfwnxmanggiigvvqauqgpazdldomphvvlztewovufohjwe',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'Pro/Qwen/Qwen2-VL-7B-Instruct',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: aiRankingMessage,
+              },
+            ],
+          },
+        ],
+        stream: false,
+        max_tokens: 512,
+        stop: ['null'],
+        temperature: 0.7,
+        top_p: 0.7,
+        top_k: 50,
+        frequency_penalty: 0.5,
+        n: 1,
+        response_format: {
+          type: 'text',
+        },
+      }),
+    };
+  
+    try {
+      const response = await fetch('https://api.siliconflow.cn/v1/chat/completions', options);
+      const data = await response.json();
+      const systemReply = data.choices[0].message.content;
+  
       setMessages((prev) => [
         ...prev,
         {
@@ -164,8 +194,19 @@ const WelcomePage = () => {
           content: systemReply,
         },
       ]);
+    } catch (error) {
+      console.error('Error fetching the API:', error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          type: 'system',
+          content: '对不起，生成回复时出错了。',
+        },
+      ]);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   return (
