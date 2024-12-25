@@ -518,10 +518,11 @@ Answer:`;
             }
 
             scores.knowledge_usage = totalKnowledge > 0 ? correctKnowledge / totalKnowledge : 0;
+            
 
             // Calculate overall score
             scores.overall_score = (scores.mathematics + scores.coding + scores.knowledge_usage) / 3;
-
+            
             // Update rankings in Firebase
             await db.collection('language-model-rankings').doc(model.id).set({
                 model_id: model.id,

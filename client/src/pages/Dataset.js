@@ -79,6 +79,10 @@ const Dataset = () => {
   useEffect(() => {
     fetchDatasets();
   }, []);
+  
+  useEffect(() => {
+    setSelectedSubCategoryFilter('All');
+  }, [selectedMainCategory]);
 
   // Filter datasets based on search and category
   const filteredDatasets = datasets.filter(dataset => {
@@ -86,6 +90,10 @@ const Dataset = () => {
                            dataset.description?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesMainCategory = selectedMainCategory === 'All' || dataset.category === selectedMainCategory;
     const matchesSubCategory = selectedSubCategoryFilter === 'All' || dataset.subCategory === selectedSubCategoryFilter;
+    console.log('Dataset:', dataset.name);
+    console.log('matchesSearch:', matchesSearch);
+    console.log('matchesMainCategory:', matchesMainCategory);
+    console.log('matchesSubCategory:', matchesSubCategory);
     return matchesSearch && matchesMainCategory && matchesSubCategory;
   });
 

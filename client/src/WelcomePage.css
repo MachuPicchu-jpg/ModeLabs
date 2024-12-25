@@ -34,3 +34,59 @@
     }
   }
   
+  .group {
+    transition: all 0.3s ease;
+  }
+  
+  .group:hover {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+  }
+  
+  .group .text-xs {
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+  
+  .group .text-gray-400 {
+    color: #9ca3af;
+  }
+  
+  .group .text-blue-100 {
+    color: #dbeafe;
+  }
+  
+  .group .bg-blue-600 {
+    background-color: #2563eb;
+  }
+  
+  .group .bg-gray-50 {
+    background-color: #f9fafb;
+  }
+  
+  .group .text-gray-900 {
+    color: #111827;
+  }
+  
+  .group .text-white {
+    color: #ffffff;
+  }
+  
+  .group .rounded-2xl {
+    border-radius: 1rem;
+  }
+  
+  .group .shadow-sm {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+  
+  .group .hover\:shadow-lg:hover {
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .group .transition-all {
+    transition: all 0.3s ease;
+  }
+  
+  .group .duration-300 {
+    transition-duration: 300ms;
+  }

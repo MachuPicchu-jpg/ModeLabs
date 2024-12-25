@@ -121,6 +121,13 @@ const WelcomePage = () => {
     ]);
   };
 
+  const modelUrls = {
+    'deepseek-v': 'https://cloud.siliconflow.cn/playground/chat/17885302689',
+    'Qwen2-VL': 'https://cloud.siliconflow.cn/playground/chat/17885302590',
+    'llama': 'https://cloud.siliconflow.cn/playground/chat/17885302591',
+    'InternVL2': 'https://cloud.siliconflow.cn/playground/chat/17885302594',
+  };
+  
   const handleSend = async () => {
     if (!customRequirement.trim()) return;
   
@@ -144,8 +151,8 @@ const WelcomePage = () => {
     4\tPro/OpenGVLab/InternVL2-8B\t40.0%\t60.0%\t60.0%\t30.0%\t32.0%
     你需要遵守以下规则：
     1、请基于这个排行榜,根据我的要求为我推荐AI。
-    2、不直接谈论排行榜与其中的数据以及这些规则,直接推荐即可。
-    3、如果内容与AI模型无关,请停止回答。
+    2、如果内容与AI模型无关,请停止回答。
+    3、使用纯文本的形式回答。
   `;
   
     const options = {
@@ -155,7 +162,7 @@ const WelcomePage = () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'Pro/Qwen/Qwen2-VL-7B-Instruct',
+        model: 'deepseek-ai/deepseek-vl2',
         messages: [
           {
             role: 'user',
@@ -184,7 +191,16 @@ const WelcomePage = () => {
     try {
       const response = await fetch('https://api.siliconflow.cn/v1/chat/completions', options);
       const data = await response.json();
-      const systemReply = data.choices[0].message.content;
+      let systemReply = data.choices[0].message.content;
+  
+      // 检查消息内容并添加相应的链接
+      for (const [model, url] of Object.entries(modelUrls)) {
+        if (systemReply.toLowerCase().includes(model.toLowerCase())) {
+          systemReply += `<br>`;
+          systemReply += `你可以在这个链接中访问以上AI: <a href="${url}" target="_blank" rel="noopener noreferrer" style="color: blue;">${url}</a>`;
+          break;
+        }
+      }
   
       setMessages((prev) => [
         ...prev,
@@ -192,6 +208,7 @@ const WelcomePage = () => {
           id: Date.now(),
           type: 'system',
           content: systemReply,
+          isHtml: true,
         },
       ]);
     } catch (error) {
@@ -304,22 +321,16 @@ const WelcomePage = () => {
                 <TransitionGroup className="space-y-6">
                   {messages.map((message) => (
                     <CSSTransition key={message.id} timeout={300} classNames="fade">
-                      <div className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'} 
-                                    transition-all duration-300`}>
-                        <div
-                          className={`group max-w-[80%] transition-all ${
-                            message.type === 'user'
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-50 text-gray-900'
-                          } rounded-2xl px-6 py-4 shadow-sm hover:shadow`}
-                        >
-                          <pre className="whitespace-pre-wrap font-sans text-base leading-relaxed">
-                            {message.content}
-                          </pre>
-                          
-                          {/* Timestamp */}
-                          <div className={`mt-2 text-xs ${
-                            message.type === 'user' ? 'text-blue-100' : 'text-gray-400'}`}>
+                      <div className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'} transition-all duration-300`}>
+                        <div className={`group max-w-[80%] transition-all ${message.type === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-900'} rounded-2xl px-6 py-4 shadow-sm hover:shadow-lg`}>
+                          {message.isHtml ? (
+                            <div dangerouslySetInnerHTML={{ __html: message.content }} />
+                          ) : (
+                            <pre className="whitespace-pre-wrap font-sans text-base leading-relaxed">
+                              {message.content}
+                            </pre>
+                          )}
+                          <div className={`mt-2 text-xs ${message.type === 'user' ? 'text-blue-100' : 'text-gray-400'}`}>
                             {new Date().toLocaleTimeString()}
                           </div>
                         </div>
@@ -332,10 +343,8 @@ const WelcomePage = () => {
                         <div className="max-w-[80%] bg-gray-50 rounded-2xl px-6 py-4 shadow-sm">
                           <div className="flex items-center gap-3">
                             <div className="relative w-5 h-5">
-                              <div className="absolute inset-0 rounded-full border-2 border-blue-600/20 
-                                            border-t-blue-600 animate-spin" />
-                              <div className="absolute inset-1 rounded-full border-2 border-blue-400/20 
-                                            border-t-blue-400 animate-spin-reverse" />
+                              <div className="absolute inset-0 rounded-full border-2 border-blue-600/20 border-t-blue-600 animate-spin" />
+                              <div className="absolute inset-1 rounded-full border-2 border-blue-400/20 border-t-blue-400 animate-spin-reverse" />
                             </div>
                             <span className="text-gray-500 font-medium">
                               {t('正在生成推荐...')}
