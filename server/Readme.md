@@ -9,13 +9,12 @@ npm install prisma --save-dev
 
 npx prisma init
 
-
-npm install  
-npm run dev
-
-npm install
 npx prisma generate
 npx prisma migrate dev
+npm install  
+
+npm start
+npm run evaluate
 
 
 # 评测所有模型
